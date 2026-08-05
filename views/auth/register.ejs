@@ -1,0 +1,42 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container">
+  <div class="auth-box">
+    <h1 class="auth-title">Crear Cuenta</h1>
+    <p class="auth-subtitle">Únete a Odin Drive para almacenar y compartir tus archivos</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <span>⚠️ <%= error %></span>
+      </div>
+    <% } %>
+
+    <form action="/register" method="POST">
+      <div class="form-group">
+        <label for="username" class="form-label">Nombre de Usuario</label>
+        <input type="text" id="username" name="username" class="form-input" required placeholder="Crea un nombre de usuario">
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Contraseña</label>
+        <input type="password" id="password" name="password" class="form-input" required placeholder="Al menos 6 caracteres">
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirmar Contraseña</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" required placeholder="Repite tu contraseña">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; justify-content: center;">
+        Crear Mi Cuenta
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

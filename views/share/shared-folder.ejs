@@ -1,0 +1,63 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container">
+  <div style="background: var(--bg-card); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-color); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+          📁 Carpeta Compartida: <%= folder.name %>
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.2rem;">
+          Compartida por <strong><%= folder.user.username %></strong>
+        </p>
+      </div>
+
+      <% if (isExpired) { %>
+        <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
+          ⏰ Enlace Expirado
+        </div>
+      <% } else { %>
+        <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600;">
+          ⏳ Expira: <%= new Date(expiresAt).toLocaleString('es-ES') %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (isExpired) { %>
+    <div class="alert alert-error">
+      <span>⚠️ Este enlace de compartir ha expirado. Ya no se pueden ver ni descargar los archivos de esta carpeta.</span>
+    </div>
+  <% } else { %>
+    <h2 class="section-title">📄 Archivos Disponibles (<%= files.length %>)</h2>
+
+    <% if (files.length === 0) { %>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Esta carpeta compartida no contiene archivos en este momento.</p>
+    <% } else { %>
+      <div class="items-grid">
+        <% files.forEach(file => { %>
+          <div class="item-card">
+            <div class="item-header">
+              <div class="item-icon icon-file">
+                <% if (file.mimeType.startsWith('image/')) { %>🖼️<% } else if (file.mimeType.includes('pdf')) { %>📕<% } else { %>📄<% } %>
+              </div>
+              <span class="item-title" title="<%= file.name %>"><%= file.name %></span>
+            </div>
+            <div class="item-meta">
+              <span>Tamaño: <%= file.formattedSize %></span>
+              <span>Subido: <%= new Date(file.createdAt).toLocaleDateString('es-ES') %></span>
+            </div>
+            <div class="item-actions" style="justify-content: flex-end; margin-top: 1rem;">
+              <a href="/drive/file/<%= file.id %>/download?shareToken=<%= shareToken %>" class="btn btn-primary btn-sm" download>
+                ⬇️ Descargar
+              </a>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>

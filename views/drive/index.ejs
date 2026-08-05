@@ -1,0 +1,212 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container">
+  <div class="toolbar">
+    <%- include('../partials/breadcrumbs') %>
+
+    <div class="toolbar-actions">
+      <button class="btn btn-secondary" onclick="openModal('createFolderModal')">
+        📁 Nueva Carpeta
+      </button>
+      <button class="btn btn-primary" onclick="openModal('uploadFileModal')">
+        📤 Subir Archivo
+      </button>
+      <% if (currentFolder) { %>
+        <button class="btn btn-secondary" onclick="openShareModal(<%= currentFolder.id %>, '<%= currentFolder.name %>')">
+          🔗 Compartir Carpeta
+        </button>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (currentFolder) { %>
+    <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 0.75rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+          📂 Carpeta actual: <%= currentFolder.name %>
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+          Los archivos que subas ahora se guardarán dentro de esta carpeta.
+        </p>
+      </div>
+      <a href="<%= currentFolder.parentId ? '/drive/folder/' + currentFolder.parentId : '/drive' %>" class="btn btn-secondary btn-sm">
+        ← Volver a Carpeta Anterior
+      </a>
+    </div>
+  <% } %>
+
+  <% if (error) { %>
+    <div class="alert alert-error">
+      <span>⚠️ <%= error %></span>
+    </div>
+  <% } %>
+
+  <% if (success) { %>
+    <div class="alert alert-success">
+      <span>✅ <%= success %></span>
+    </div>
+  <% } %>
+
+  <!-- Section: Folders -->
+  <h2 class="section-title">📁 Carpetas (<%= subfolders.length %>)</h2>
+  <% if (subfolders.length === 0) { %>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">No hay subcarpetas aquí.</p>
+  <% } else { %>
+    <div class="items-grid" style="margin-bottom: 2.5rem;">
+      <% subfolders.forEach(folder => { %>
+        <div class="item-card">
+          <div class="item-header">
+            <div class="item-icon icon-folder" style="cursor: pointer;" onclick="window.location.href='/drive/folder/<%= folder.id %>'">📁</div>
+            <a href="/drive/folder/<%= folder.id %>" class="item-title" title="<%= folder.name %>">
+              <%= folder.name %>
+            </a>
+          </div>
+          <div class="item-meta">
+            <span>Creada: <%= new Date(folder.createdAt).toLocaleDateString('es-ES') %></span>
+          </div>
+          <div class="item-actions">
+            <a href="/drive/folder/<%= folder.id %>" class="btn btn-primary btn-sm">📂 Abrir</a>
+            <button class="btn btn-secondary btn-sm" onclick="openRenameModal(<%= folder.id %>, '<%= folder.name %>')" title="Renombrar">✏️</button>
+            <button class="btn btn-secondary btn-sm" onclick="openShareModal(<%= folder.id %>, '<%= folder.name %>')" title="Compartir">🔗</button>
+            <form action="/drive/folder/<%= folder.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar esta carpeta y todo su contenido?');">
+              <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">🗑️</button>
+            </form>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+
+  <!-- Section: Files -->
+  <h2 class="section-title">📄 Archivos (<%= files.length %>)</h2>
+  <% if (files.length === 0) { %>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">No hay archivos en esta carpeta.</p>
+  <% } else { %>
+    <div class="items-grid">
+      <% files.forEach(file => { %>
+        <div class="item-card">
+          <div class="item-header">
+            <div class="item-icon icon-file">
+              <% if (file.mimeType.startsWith('image/')) { %>🖼️<% } else if (file.mimeType.includes('pdf')) { %>📕<% } else if (file.mimeType.includes('zip') || file.mimeType.includes('rar')) { %>📦<% } else { %>📄<% } %>
+            </div>
+            <a href="/drive/file/<%= file.id %>" class="item-title" title="<%= file.name %>">
+              <%= file.name %>
+            </a>
+          </div>
+          <div class="item-meta">
+            <span>Subido: <%= new Date(file.createdAt).toLocaleDateString('es-ES') %></span>
+            <span>Tipo: <%= file.storageType === 'cloudinary' ? '☁️ Cloud' : '💻 Local' %></span>
+          </div>
+          <div class="item-actions">
+            <a href="/drive/file/<%= file.id %>" class="btn btn-secondary btn-sm">ℹ️ Detalles</a>
+            <a href="/drive/file/<%= file.id %>/download" class="btn btn-primary btn-sm" download>⬇️ Descargar</a>
+            <form action="/drive/file/<%= file.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('¿Eliminar este archivo?');">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+            </form>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</main>
+
+<!-- Modal: Create Folder -->
+<div class="modal-overlay" id="createFolderModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Crear Nueva Carpeta</h3>
+      <button class="modal-close" onclick="closeModal('createFolderModal')">&times;</button>
+    </div>
+    <form action="/drive/folder/create" method="POST">
+      <input type="hidden" name="parentId" value="<%= currentFolder ? currentFolder.id : '' %>">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Ubicación: <strong style="color: var(--accent-cyan);"><%= currentFolder ? currentFolder.name : 'Mi Unidad (Raíz)' %></strong>
+      </p>
+      <div class="form-group">
+        <label for="folderNameInput" class="form-label">Nombre de la Carpeta</label>
+        <input type="text" id="folderNameInput" name="name" class="form-input" required placeholder="Ej: Mis Documentos">
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('createFolderModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Crear Carpeta</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Upload File -->
+<div class="modal-overlay" id="uploadFileModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Subir Archivo</h3>
+      <button class="modal-close" onclick="closeModal('uploadFileModal')">&times;</button>
+    </div>
+    <form action="/drive/file/upload" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="folderId" value="<%= currentFolder ? currentFolder.id : '' %>">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Destino de la carga: <strong style="color: var(--accent-cyan);"><%= currentFolder ? currentFolder.name : 'Mi Unidad (Raíz)' %></strong>
+      </p>
+      <div class="form-group">
+        <label for="fileInput" class="form-label">Seleccionar Archivo (Máx. 15MB)</label>
+        <input type="file" id="fileInput" name="file" class="form-input" required style="padding: 0.5rem;">
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('uploadFileModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Subir Ahora</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Rename Folder -->
+<div class="modal-overlay" id="renameFolderModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Renombrar Carpeta</h3>
+      <button class="modal-close" onclick="closeModal('renameFolderModal')">&times;</button>
+    </div>
+    <form id="renameFolderForm" method="POST">
+      <div class="form-group">
+        <label for="renameFolderNameInput" class="form-label">Nuevo Nombre</label>
+        <input type="text" id="renameFolderNameInput" name="name" class="form-input" required>
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('renameFolderModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Share Folder (Extra Credit) -->
+<div class="modal-overlay" id="shareFolderModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Compartir Carpeta</h3>
+      <button class="modal-close" onclick="closeModal('shareFolderModal')">&times;</button>
+    </div>
+    <form action="/drive/share/create" method="POST">
+      <input type="hidden" id="shareFolderIdInput" name="folderId" value="">
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+        Carpeta a compartir: <strong id="shareFolderNameText" style="color: var(--text-main);">--</strong>
+      </p>
+      <div class="form-group">
+        <label for="durationSelect" class="form-label">Duración del Enlace</label>
+        <select id="durationSelect" name="duration" class="form-select">
+          <option value="1h">1 Hora</option>
+          <option value="1d" selected>1 Día</option>
+          <option value="7d">7 Días</option>
+          <option value="10d">10 Días</option>
+          <option value="30d">30 Días</option>
+        </select>
+      </div>
+      <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('shareFolderModal')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Generar Enlace Público</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

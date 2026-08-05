@@ -1,0 +1,14 @@
+<% if (locals.breadcrumbs && breadcrumbs.length > 0) { %>
+  <nav class="breadcrumb">
+    <% breadcrumbs.forEach((crumb, index) => { %>
+      <% if (index > 0) { %>
+        <span class="breadcrumb-separator">/</span>
+      <% } %>
+      <% if (index === breadcrumbs.length - 1) { %>
+        <span style="color: var(--text-main); font-weight: 600;"><%= crumb.name %></span>
+      <% } else { %>
+        <a href="<%= crumb.id ? '/drive/folder/' + crumb.id : '/drive' %>"><%= crumb.name %></a>
+      <% } %>
+    <% }); %>
+  </nav>
+<% } %>
