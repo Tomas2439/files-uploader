@@ -57,3 +57,18 @@ Un clon moderno y funcional de **Google Drive** desarrollado para el módulo de 
    ```
 
 Visita `http://localhost:3000` en tu navegador.
+
+## 📷 Capturas
+### Home - Login
+<img width="1279" height="802" alt="image" src="https://github.com/user-attachments/assets/16cb6747-8740-4ada-9431-eed831311500" />
+
+### Sign Up - Registrarse
+<img width="528" height="654" alt="image" src="https://github.com/user-attachments/assets/b5b00ba3-5332-4cf6-88cb-1d8c758ac560" />
+
+### Drive - Login Done
+<img width="1280" height="808" alt="image" src="https://github.com/user-attachments/assets/a07c225f-db0d-4888-b252-dfb32d8943b1" />
+
+### Drive - Folder
+<img width="1277" height="806" alt="image" src="https://github.com/user-attachments/assets/c8f0e406-8705-421c-82e8-6ad7201e6599" />
+
+
